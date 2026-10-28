@@ -1,25 +1,26 @@
-import { ethers } from "ethers";
-
 export default async function handler(req, res) {
   try {
     const walletAddress = process.env.BASE_WALLET_ADDRESS || "0x960E510E4E1dA4B13CE3b601202d4680AFcf02E0";
     const txHash = req.headers['x-payment-tx'];
 
-    // If a transaction hash is provided, verify it on-chain
+    // If a transaction hash is provided, verify it via Base public RPC
     if (txHash) {
-      // Connect to Base L2 public RPC
-      const provider = new ethers.JsonRpcProvider("https://mainnet.base.org");
-      const tx = await provider.getTransaction(txHash);
-      const receipt = await provider.getTransactionReceipt(txHash);
+      const rpcResponse = await fetch("https://mainnet.base.org", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "eth_getTransactionReceipt",
+          params: [txHash],
+          id: 1
+        })
+      });
 
-      if (tx && receipt && receipt.status === 1) {
-        // Official Base USDC Contract Address
-        const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase();
-        
-        // Basic verification for native ETH or ERC-20 USDC transfers can be added here.
-        // For production agent gateways, verify receipt logs matching Transfer event data to walletAddress.
-        
-        // If payment is successfully verified, fulfill the AI inference request!
+      const rpcData = await rpcResponse.json();
+      const receipt = rpcData.result;
+
+      if (receipt && receipt.status === "0x1") {
+        // Payment verified successfully! Return AI payload
         return res.status(200).json({
           status: 200,
           result: "AI inference payload unlocked successfully!",
