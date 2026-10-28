@@ -1,0 +1,13 @@
+{
+  "mcpVersion": "1.0",
+  "name": "data-parser-gateway",
+  "description": "Extracts structured data from raw input streams.",
+  "endpoint": "https://agent-gateway-six.vercel.app/api/infer",
+  "transport": "http-post",
+  "pricing": {
+    "type": "pay-per-request",
+    "amount": "$0.002",
+    "currency": "USDC",
+    "network": "eip155:8453"
+  }
+}
